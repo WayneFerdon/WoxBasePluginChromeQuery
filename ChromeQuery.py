@@ -2,7 +2,7 @@
 # Author: wayneferdon wayneferdon@hotmail.com
 # Date: 2022-10-05 17:07:35
 # LastEditors: WayneFerdon wayneferdon@hotmail.com
-# LastEditTime: 2023-04-03 02:25:26
+# LastEditTime: 2023-04-03 03:39:49
 # FilePath: \WoxPluginBase_ChromeQuery\ChromeQuery.py
 # ----------------------------------------------------------------
 # Copyright (c) 2022 by Wayne Ferdon Studio. All rights reserved.
@@ -30,9 +30,9 @@ class ChromeQuery(Query):
     def _extraContextMenu_(self, data:ChromeData, iconPath:str):
         return []
 
-    def query(self, queryString:str):
+    def query(self, query:str):
         results = list()
-        regex = RegexList(queryString)
+        regex = RegexList(query)
         self._datas_ = self._getDatas_()
         for data in self._datas_:
             result = self._getResult_(regex, data)

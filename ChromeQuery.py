@@ -2,7 +2,7 @@
 # Author: wayneferdon wayneferdon@hotmail.com
 # Date: 2022-10-05 17:07:35
 # LastEditors: WayneFerdon wayneferdon@hotmail.com
-# LastEditTime: 2023-04-03 01:04:38
+# LastEditTime: 2023-04-03 02:25:26
 # FilePath: \WoxPluginBase_ChromeQuery\ChromeQuery.py
 # ----------------------------------------------------------------
 # Copyright (c) 2022 by Wayne Ferdon Studio. All rights reserved.
@@ -11,9 +11,12 @@
 # See the LICENSE file in the project root for more information.
 # ----------------------------------------------------------------
 
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from WoxPluginBase_Query import *
+
 import webbrowser
 from ChromeCache import *
-from WoxPluginBase_Query import *
 
 class ChromeQuery(Query):
     PlatformCaches = dict[Platform, Cache]()
@@ -52,3 +55,10 @@ class ChromeQuery(Query):
     @classmethod
     def _openUrl_(cls, url:str):
         webbrowser.open(url)
+
+    class InstallationCheck(Query.InstallationCheck):
+        def PluginName(self) -> str:
+            return 'WoxPluginBase_ChromeQuery'
+
+if __name__ == "__main__":
+    ChromeQuery.InstallationCheck()

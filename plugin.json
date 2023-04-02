@@ -1,0 +1,12 @@
+{
+    "ID": "b67510a7-3122-4091-9fb5-5ab6c3e1ef6a",
+    "ActionKeyword": "WoxPluginBase_ChromeQuery_InstallationCheck",
+    "Name": "WoxPluginBase_ChromeQuery",
+    "Description": "WoxPluginBase_ChromeQuery",
+    "Author": "Wayne Custaf Laqinoa Ferdon",
+    "Version": "1.0.0",
+    "Language": "python",
+    "Website": "https://github.com/wayneferdon",
+    "IcoPath": "./Images/Icon.png",
+    "ExecuteFileName": "ChromeQuery.py"
+}

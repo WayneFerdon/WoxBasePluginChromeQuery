@@ -2,8 +2,8 @@
 # Author: wayneferdon wayneferdon@hotmail.com
 # Date: 2022-10-05 16:08:29
 # LastEditors: WayneFerdon wayneferdon@hotmail.com
-# LastEditTime: 2023-04-03 01:18:30
-# FilePath: \Wox.Base.Plugin.ChromeHistoryc:\Users\WayneFerdon\AppData\Local\FlowLauncher\app-1.14.0\Plugins\WoxPluginBase_ChromeQuery\ChromeCache.py
+# LastEditTime: 2023-04-03 02:06:32
+# FilePath: \WoxPluginBase_ChromeQuery\ChromeCache.py
 # ----------------------------------------------------------------
 # Copyright (c) 2022 by Wayne Ferdon Studio. All rights reserved.
 # Licensed to the .NET Foundation under one or more agreements.
@@ -33,9 +33,12 @@ class Platform():
                 return self.rootURL
             return self.url.format(id)
     
-    def __init__(self, type:Type, bookmarkSetting:BookmarkSetting) -> None:
+    def __init__(self, type:Type, bookmarkSetting:BookmarkSetting, icon:str, dataPath:str) -> None:
+
         self.type = type
         self.bookmarkSetting = bookmarkSetting
+        self.icon = icon
+        self.dataPath = dataPath
     
     def getInternalUrl(self, id:int):
         return self.bookmarkSetting.getInternalUrl(id)
@@ -49,14 +52,19 @@ class Platform():
     @staticmethod
     def GetDefined():
         if Platform.__Defined__ is None:
+            localAppData = os.environ['localAppData'.upper()]
             Platform.__Defined__ = [
             Platform(
                 Platform.Type.Chrome,
-                Platform.BookmarkSetting('chrome://bookmarks/')
+                Platform.BookmarkSetting('chrome://bookmarks/'),
+                './Images/chromeIcon.png',
+                localAppData + '/Google/Chrome/User Data/Default/'
             ),
             Platform(
                 Platform.Type.Edge,
-                Platform.BookmarkSetting('edge://favorites/')
+                Platform.BookmarkSetting('edge://favorites/'),
+                './Images/edgeIcon.png',
+                localAppData + '/Microsoft/Edge/User Data/Default/'
             )
         ]
         return Platform.__Defined__
@@ -79,7 +87,7 @@ class ChromeData():
                 if iconID != 0:
                     iconPath = ChromeData.__getIconPath__(iconID)
                 else:
-                    iconPath = ChromeCache.getCaches()[platform].PLATFORM_ICON
+                    iconPath = ChromeCache.getCaches()[platform].platform.icon
                 self.icon = ChromeData.__getAbsPath__(iconPath)
 
     @staticmethod
@@ -113,20 +121,9 @@ class BitMap():
         self.height = height
 
 class Cache:
-    def __init__(self, platform):
-        self.__setPlatform__(platform)
+    def __init__(self, platform:Platform):
+        self.platform = platform
         self.__loadcons__()
-    
-    def __setPlatform__(self, platform:Platform):
-        localAppData = os.environ['localAppData'.upper()]
-        match platform.type:
-            case Platform.Type.Chrome:
-                self.PLATFORM_ICON = './Images/chromeIcon.png'
-                self.__DATA_PATH__ = '/Google/Chrome/'
-            case Platform.Type.Edge:
-                self.PLATFORM_ICON = './Images/edgeIcon.png'
-                self.__DATA_PATH__ = '/Microsoft/Edge/'
-        self.__DATA_PATH__ = localAppData + self.__DATA_PATH__ + 'User Data/Default/'
 
     def __loadcons__(self):
         cursor = sqlite3.connect(self.__getReadOnlyData__('Favicons')).cursor()
@@ -149,26 +146,26 @@ class Cache:
                 continue
             bitmapInfos[iconID] = BitMap(image,width,height)
     
-        self.__ICON_DICT__ = dict[str, int]()
+        self.iconDict = dict[str, int]()
         for url, iconID in urls:
-            self.__ICON_DICT__[url] = iconID
+            self.iconDict[url] = iconID
 
         for iconID in bitmapInfos.keys():
             imageData = bitmapInfos[iconID].image
             try:
-                with open(ChromeData.__getIconPath__(iconID), 'wb') as f:
+                with open(ChromeData.__getIconPath__(self.platform.name +  str(iconID)), 'wb') as f:
                     f.write(imageData)
             except PermissionError:
                 pass
 
     def __getReadOnlyData__(self, dataName):
-        sourceData = self.__DATA_PATH__ + dataName
-        readOnlyData = self.__DATA_PATH__ + dataName + 'ToRead'
+        sourceData = self.platform.dataPath + dataName
+        readOnlyData = self.platform.dataPath + dataName + 'ToRead'
         shutil.copyfile(sourceData, readOnlyData)
         return readOnlyData
 
     def __loadBookmarks__(self) -> str:
-        with open(self.__DATA_PATH__ + 'Bookmarks', 'r', encoding='UTF-8') as f:
+        with open(self.platform.dataPath + 'Bookmarks', 'r', encoding='UTF-8') as f:
             bookmarkData = json.load(f)
         return bookmarkData
 
@@ -197,9 +194,9 @@ class ChromeCache:
     def getIconID(url):
         for platform in Platform.GetDefined():
             cache = ChromeCache.getCaches()[platform]
-        for keyURL in cache.__ICON_DICT__.keys():
+        for keyURL in cache.iconDict.keys():
             if url in keyURL:
-                return cache.__ICON_DICT__[keyURL]
+                return cache.iconDict[keyURL]
         return 0
 
     @staticmethod

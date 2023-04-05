@@ -2,8 +2,8 @@
 # Author: wayneferdon wayneferdon@hotmail.com
 # Date: 2022-10-05 16:08:29
 # LastEditors: WayneFerdon wayneferdon@hotmail.com
-# LastEditTime: 2023-04-03 02:06:32
-# FilePath: \WoxPluginBase_ChromeQuery\ChromeCache.py
+# LastEditTime: 2023-04-05 07:40:18
+# FilePath: \Plugins\WoxPluginBase_ChromeQuery\ChromeCache.py
 # ----------------------------------------------------------------
 # Copyright (c) 2022 by Wayne Ferdon Studio. All rights reserved.
 # Licensed to the .NET Foundation under one or more agreements.
@@ -18,63 +18,73 @@ import sqlite3
 import shutil
 from enum import Enum
 
-class Platform():
-    class Type(Enum):
-        Chrome = 0, 
-        Edge = 1
-    class BookmarkSetting():
-        def __init__(self, rootURL:str, url:str = None, rootID:int = 1) -> None:
-            self.rootURL = rootURL
-            self.url = rootURL + '?id={}/' if url is None else url
-            self.rootID = rootID
+class Platform(Enum):
+    Chrome = 0
+    Edge = 1
+
+    __all__ = None
+
+    @classmethod
+    @property
+    def all(cls):
+        if cls.__all__:
+            return cls.__all__
         
-        def getInternalUrl(self, id:int):
-            if id <= self.rootID:
-                return self.rootURL
-            return self.url.format(id)
-    
-    def __init__(self, type:Type, bookmarkSetting:BookmarkSetting, icon:str, dataPath:str) -> None:
-
-        self.type = type
-        self.bookmarkSetting = bookmarkSetting
-        self.icon = icon
-        self.dataPath = dataPath
-    
-    def getInternalUrl(self, id:int):
-        return self.bookmarkSetting.getInternalUrl(id)
-
-    __Defined__ = None
+        cls.__all__ =  {
+            Platform.Chrome: {
+                cls.dataPath: '/Google/Chrome',
+                cls.icon: './Images/chromeIcon.png',
+                cls.bookmarkRoot: 'chrome://bookmarks/',
+            },
+            Platform.Edge: {
+                cls.dataPath: '/Microsoft/Edge',
+                cls.icon: './Images/edgeIcon.png',
+                cls.bookmarkRoot: 'edge://favorites/',
+            }
+        }
+        return cls.__all__
 
     @property
     def name(self):
-        return f'[@{str(self.type.name)}]'
+        return f'[@{str(super().name)}]'
 
-    @staticmethod
-    def GetDefined():
-        if Platform.__Defined__ is None:
-            localAppData = os.environ['localAppData'.upper()]
-            Platform.__Defined__ = [
-            Platform(
-                Platform.Type.Chrome,
-                Platform.BookmarkSetting('chrome://bookmarks/'),
-                './Images/chromeIcon.png',
-                localAppData + '/Google/Chrome/User Data/Default/'
-            ),
-            Platform(
-                Platform.Type.Edge,
-                Platform.BookmarkSetting('edge://favorites/'),
-                './Images/edgeIcon.png',
-                localAppData + '/Microsoft/Edge/User Data/Default/'
-            )
-        ]
-        return Platform.__Defined__
+    @property
+    def dataPath(self):
+        localAppData = os.getenv('LocalAppData')
+        return  f'{localAppData}{Platform.all[self][Platform.dataPath]}/User Data/Default/'
+
+    @property
+    def icon(self):
+        return Platform.all[self][Platform.icon]
+    
+    @property
+    def bookmarkRoot(self) -> str:
+        return Platform.all[self][Platform.bookmarkRoot]
+
+    @property
+    def rootBookmarkID(self) -> int:
+        if Platform.rootBookmarkID not in Platform.all[self].keys():
+            return 1
+        return Platform.all[self][Platform.rootBookmarkID]
+
+    @property
+    def url(self) -> str:
+        given = None
+        if Platform.url in Platform.all[self].keys():
+            given = Platform.all[self][Platform.url]
+        return self.bookmarkRoot + '?id={}/' if given is None else given
+    
+    def getInternalUrl(self, id:int):
+        if id <= self.rootBookmarkID:
+            return self.bookmarkRoot
+        return self.url.format(id)
 
 class ChromeData():
     class Type(Enum):
         url = 0, 
-        folder = 1, 
+        folder = 1,
 
-    def __init__(self,platform:Platform, title:str, url:str, type:Type=Type.url):
+    def __init__(self, platform:Platform, title:str, url:str, type:Type=Type.url):
         self.platform = platform
         self.title = title
         self.url = url
@@ -83,12 +93,7 @@ class ChromeData():
             case ChromeData.Type.folder:
                 self.icon = ChromeData.FOLDER_ICON
             case ChromeData.Type.url:
-                iconID = ChromeCache.getIconID(self.url)
-                if iconID != 0:
-                    iconPath = ChromeData.__getIconPath__(iconID)
-                else:
-                    iconPath = ChromeCache.getCaches()[platform].platform.icon
-                self.icon = ChromeData.__getAbsPath__(iconPath)
+                self.icon = ChromeCache.getIcon(self.url)
 
     @staticmethod
     def __getAbsPath__(iconPath):
@@ -97,10 +102,10 @@ class ChromeData():
     FOLDER_ICON = __getAbsPath__('./Images/folderIcon.png')
 
     @staticmethod
-    def __getIconPath__(iconID):
+    def __getIconPath__(platform:Platform, iconID:int):
         if not os.path.exists('./Images/Temp'):
             os.makedirs('./Images/Temp')
-        return './Images/Temp/icon{}.png'.format(iconID)
+        return './Images/Temp/icon{}{}.png'.format(platform.name, iconID)
 
 class Bookmark(ChromeData):
     def __init__(self, platform:Platform, title:str, url:str, path:str, id:int, directoryID:int, type:ChromeData.Type):
@@ -123,9 +128,9 @@ class BitMap():
 class Cache:
     def __init__(self, platform:Platform):
         self.platform = platform
-        self.__loadcons__()
+        self.__loadIcons__()
 
-    def __loadcons__(self):
+    def __loadIcons__(self):
         cursor = sqlite3.connect(self.__getReadOnlyData__('Favicons')).cursor()
         bitmapCursorResults = cursor.execute(
             'SELECT icon_id, image_data, width, height '
@@ -153,7 +158,7 @@ class Cache:
         for iconID in bitmapInfos.keys():
             imageData = bitmapInfos[iconID].image
             try:
-                with open(ChromeData.__getIconPath__(self.platform.name +  str(iconID)), 'wb') as f:
+                with open(ChromeData.__getIconPath__(self.platform, iconID), 'wb') as f:
                     f.write(imageData)
             except PermissionError:
                 pass
@@ -180,30 +185,30 @@ class Cache:
         return histories
 
 class ChromeCache:
-    __Caches__ = None
+    __caches__ = None
 
     @staticmethod
-    def getCaches() -> dict[Platform, Cache]:
-        if ChromeCache.__Caches__ is None:
-            ChromeCache.__Caches__ = dict[Platform, Cache]()
-            for platfrom in Platform.GetDefined():
-                ChromeCache.__Caches__[platfrom] = Cache(platfrom)
-        return ChromeCache.__Caches__
+    def __getCaches__() -> dict[Platform, Cache]:
+        if not ChromeCache.__caches__:
+            ChromeCache.__caches__ = dict[Platform, Cache]()
+            for platfrom in Platform.all:
+                ChromeCache.__caches__[platfrom] = Cache(platfrom)
+        return ChromeCache.__caches__
     
     @staticmethod
-    def getIconID(url):
-        for platform in Platform.GetDefined():
-            cache = ChromeCache.getCaches()[platform]
-        for keyURL in cache.iconDict.keys():
-            if url in keyURL:
-                return cache.iconDict[keyURL]
-        return 0
+    def getIcon(url):
+        for platform in Platform.all:
+            cache = ChromeCache.__getCaches__()[platform]
+            for keyURL in cache.iconDict.keys():
+                if url in keyURL:
+                    return ChromeData.__getIconPath__(platform, cache.iconDict[keyURL])
+        return ChromeCache.__getCaches__()[platform].platform.icon
 
     @staticmethod
     def getHistories() -> list[History]:
         results = list[History]()
-        for platform in Platform.GetDefined():
-            cache = ChromeCache.getCaches()[platform]
+        for platform in Platform.all:
+            cache = ChromeCache.__getCaches__()[platform]
             historyInfos = cache.__loadHistories__()
             histories = dict[str, History]()
             for url, title, lastVisitTime in historyInfos:
@@ -236,8 +241,8 @@ class ChromeCache:
             return bookmarks
         
         bookmarks = list[Bookmark]()
-        for platform in Platform.GetDefined():
-            cache = ChromeCache.getCaches()[platform]
+        for platform in Platform.all:
+            cache = ChromeCache.__getCaches__()[platform]
             data = cache.__loadBookmarks__()
             for root in data['roots']:
                 try:

@@ -2,8 +2,8 @@
 # Author: wayneferdon wayneferdon@hotmail.com
 # Date: 2022-10-05 17:07:35
 # LastEditors: WayneFerdon wayneferdon@hotmail.com
-# LastEditTime: 2023-04-03 03:39:49
-# FilePath: \WoxPluginBase_ChromeQuery\ChromeQuery.py
+# LastEditTime: 2023-04-05 07:41:43
+# FilePath: \Plugins\WoxPluginBase_ChromeQuery\ChromeQuery.py
 # ----------------------------------------------------------------
 # Copyright (c) 2022 by Wayne Ferdon Studio. All rights reserved.
 # Licensed to the .NET Foundation under one or more agreements.
@@ -18,24 +18,24 @@ from WoxPluginBase_Query import *
 import webbrowser
 from ChromeCache import *
 
-class ChromeQuery(Query):
+class ChromeQuery(QueryPlugin):
     PlatformCaches = dict[Platform, Cache]()
 
-    def _getDatas_(self) -> list[ChromeData]:
+    def __getDatas__(self) -> list[ChromeData]:
         return None
 
-    def _getResult_(self, regex:RegexList, data:ChromeData):
+    def __getResult__(self, regex:RegexList, data:ChromeData):
         return None
 
-    def _extraContextMenu_(self, data:ChromeData, iconPath:str):
+    def __extraContextMenu__(self, data:ChromeData):
         return []
 
     def query(self, query:str):
         results = list()
         regex = RegexList(query)
-        self._datas_ = self._getDatas_()
-        for data in self._datas_:
-            result = self._getResult_(regex, data)
+        self.__datas__ = self.__getDatas__()
+        for data in self.__datas__:
+            result = self.__getResult__(regex, data)
             if result is None:
                 continue
             results.append(result)
@@ -43,22 +43,17 @@ class ChromeQuery(Query):
 
     def context_menu(self, index:int):
         self.query('')
-        data = self._datas_[index]
+        data = self.__datas__[index]
 
         results = [
             self.getCopyDataResult('URL', data.url, data.icon), 
             self.getCopyDataResult('Title', data.title, data.icon)
         ]
-        results += self._extraContextMenu_(data)
+        results += self.__extraContextMenu__(data)
         return results
 
-    @classmethod
-    def _openUrl_(cls, url:str):
+    def openUrl(self, url:str):
         webbrowser.open(url)
 
-    class InstallationCheck(Query.InstallationCheck):
-        def PluginName(self) -> str:
-            return 'WoxPluginBase_ChromeQuery'
-
 if __name__ == "__main__":
-    ChromeQuery.InstallationCheck()
+    InstallationCheck()

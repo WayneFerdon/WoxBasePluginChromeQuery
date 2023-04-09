@@ -2,8 +2,8 @@
 # Author: wayneferdon wayneferdon@hotmail.com
 # Date: 2022-10-05 16:08:29
 # LastEditors: WayneFerdon wayneferdon@hotmail.com
-# LastEditTime: 2023-04-05 07:40:18
-# FilePath: \Plugins\WoxPluginBase_ChromeQuery\ChromeCache.py
+# LastEditTime: 2023-04-09 09:51:52
+# FilePath: \FlowLauncher\Plugins\WoxPluginBase_ChromeQuery\ChromeCache.py
 # ----------------------------------------------------------------
 # Copyright (c) 2022 by Wayne Ferdon Studio. All rights reserved.
 # Licensed to the .NET Foundation under one or more agreements.
@@ -93,7 +93,7 @@ class ChromeData():
             case ChromeData.Type.folder:
                 self.icon = ChromeData.FOLDER_ICON
             case ChromeData.Type.url:
-                self.icon = ChromeCache.getIcon(self.url)
+                self.icon = ChromeCache.getIcon(self)
 
     @staticmethod
     def __getAbsPath__(iconPath):
@@ -196,13 +196,15 @@ class ChromeCache:
         return ChromeCache.__caches__
     
     @staticmethod
-    def getIcon(url):
+    def getIcon(data:ChromeData):
+        url = data.url
         for platform in Platform.all:
             cache = ChromeCache.__getCaches__()[platform]
             for keyURL in cache.iconDict.keys():
                 if url in keyURL:
                     return ChromeData.__getIconPath__(platform, cache.iconDict[keyURL])
-        return ChromeCache.__getCaches__()[platform].platform.icon
+        platform = data.platform
+        return platform.icon
 
     @staticmethod
     def getHistories() -> list[History]:

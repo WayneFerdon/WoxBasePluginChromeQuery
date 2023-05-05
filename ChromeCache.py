@@ -2,7 +2,7 @@
 # Author: wayneferdon wayneferdon@hotmail.com
 # Date: 2022-10-05 16:08:29
 # LastEditors: WayneFerdon wayneferdon@hotmail.com
-# LastEditTime: 2023-04-09 09:51:52
+# LastEditTime: 2023-04-23 17:02:38
 # FilePath: \FlowLauncher\Plugins\WoxPluginBase_ChromeQuery\ChromeCache.py
 # ----------------------------------------------------------------
 # Copyright (c) 2022 by Wayne Ferdon Studio. All rights reserved.
@@ -72,7 +72,7 @@ class Platform(Enum):
         given = None
         if Platform.url in Platform.all[self].keys():
             given = Platform.all[self][Platform.url]
-        return self.bookmarkRoot + '?id={}/' if given is None else given
+        return self.bookmarkRoot + '?id={}' if given is None else given
     
     def getInternalUrl(self, id:int):
         if id <= self.rootBookmarkID:
@@ -237,7 +237,7 @@ class ChromeCache:
                     case Bookmark.Type.url:
                         url = item['url']
                     case Bookmark.Type.folder:
-                        url = ancestors + item['name'] + '/'
+                        url = ancestors + '/' + item['name']
                         bookmarks += getChildren(platform, item['children'], url, id)
                 bookmarks.append(Bookmark(platform, title, url, ancestors, id, parentID, type))
             return bookmarks

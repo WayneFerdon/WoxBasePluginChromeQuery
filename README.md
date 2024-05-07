@@ -11,7 +11,7 @@
  * See the LICENSE file in the project root for more information.
 -->
 
-# WoxPluginBase_ChromeQuery
+# WoxBasePluginChromeQuery
 
 Base Library for some Wox base plugins.
 Also requires [WoxBasePluginQuery](https://github.com/WayneFerdon/WoxBasePluginQuery/)

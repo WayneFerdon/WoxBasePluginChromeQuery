@@ -251,6 +251,6 @@ class ChromeCache:
                     childItems = data['roots'][root]['children']
                 except Exception:
                     continue
-                bookmarks.append(Bookmark(platform, root, root+ '/', platform.getInternalUrl(0), data['roots'][root]['id'], 0, Bookmark.Type.folder))
+                bookmarks.append(Bookmark(platform, root, root+ '/', "", data['roots'][root]['id'], 0, Bookmark.Type.folder))
                 bookmarks += getChildren(platform, childItems, root + '/', 0)
         return bookmarks

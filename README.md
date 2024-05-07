@@ -14,7 +14,7 @@
 # WoxPluginBase_ChromeQuery
 
 Base Library for some Wox base plugins.
-Also requires [WoxPluginBase_Query](https://github.com/WayneFerdon/WoxPluginBase_Query/)
+Also requires [WoxBasePluginQuery](https://github.com/WayneFerdon/WoxBasePluginQuery/)
 
 To support more chrome-base-browser, see [class Platform in ChromeCache.py Line 21](https://github.com/WayneFerdon/WoxPluginBase_ChromeQuery/blob/master/ChromeCache.py#L21)
 

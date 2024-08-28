@@ -18,4 +18,4 @@ Also requires [WoxBasePluginQuery](https://github.com/WayneFerdon/WoxBasePluginQ
 
 To support more chrome-base-browser, see [class Platform in ChromeCache.py Line 21](https://github.com/WayneFerdon/WoxPluginBase_ChromeQuery/blob/master/ChromeCache.py#L21)
 
-To check installation, type 'WoxPluginBase_ChromeQuery_InstallationCheck' to query in Wox, FlowLauncher or etc. ,or just check in plugin settings in launcher ui.
+To check installation, type 'WoxBasePluginChromeQuery_InstallationCheck' to query in Wox, FlowLauncher or etc. ,or just check in plugin settings in launcher ui.
